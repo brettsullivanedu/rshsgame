@@ -1,7 +1,8 @@
 import pygame
 import time
-from constants import MAIN_MENU_BG, NEW_GAME_BUTTON_IMAGE_PATH, OPTIONS_BUTTON_IMAGE_PATH, QUIT_BUTTON_IMAGE_PATH, SCREEN_HEIGHT, SCREEN_WIDTH
+from constants import CHARACTER_SELECT_BG, MAIN_MENU_BG, NEW_GAME_BUTTON_IMAGE_PATH, OPTIONS_BUTTON_IMAGE_PATH, QUIT_BUTTON_IMAGE_PATH, SCREEN_HEIGHT, SCREEN_WIDTH
 from dungeon import Dungeon
+from player import Rogue, Warrior, Wizard
 from utils import Button, image_loader
 
 class State:
@@ -75,11 +76,12 @@ class MainMenuState(State):
         for button in self.buttons:
             if button.is_clicked(event):
                 if button.image_path == NEW_GAME_BUTTON_IMAGE_PATH:
-                    return NewGameState()
+                    return CharacterSelectState()
                 elif button.image_path == OPTIONS_BUTTON_IMAGE_PATH:
                     return OptionsState()
                 elif button.image_path == QUIT_BUTTON_IMAGE_PATH:
                     return QuitState()
+
 
     def draw(self, screen):
         """
@@ -92,10 +94,46 @@ class MainMenuState(State):
         for button in self.buttons:
             button.draw(screen)
 
+class CharacterSelectState(State):
+    """
+    Represents the character selection state of the game.
+    """
+    def __init__(self):
+        """
+        Initializes the background image and buttons in the character selection state.
+        """
+        self.background_image = image_loader(CHARACTER_SELECT_BG, with_alpha=False, scale=True)
+        self.buttons = [
+            Button(NEW_GAME_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2),
+            Button(OPTIONS_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2),
+            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH * 3 / 4, SCREEN_HEIGHT / 2)
+        ]
+        self.selected_player = None  # Attribute to store the selected player character
+        
+        # Load images for all buttons
+        for button in self.buttons:
+            button.load_image()
+
+    def handle_input(self, event):
+        """
+        Handles user input in the character selection state. Depending on the button clicked, transition to the new game state.
+        """
+        for button in self.buttons:
+            if button.is_clicked(event):
+                
+                # Create a Player object based on the selected character
+                if button.image_path == NEW_GAME_BUTTON_IMAGE_PATH:
+                    self.selected_player = Rogue("Rogue")  # Create a Rogue player
+                elif button.image_path == OPTIONS_BUTTON_IMAGE_PATH:
+                    self.selected_player = Wizard("Wizard")  # Create a Wizard player
+                elif button.image_path == QUIT_BUTTON_IMAGE_PATH:
+                    self.selected_player = Warrior("Warrior")  # Create a Warrior player
+                return NewGameState(self.selected_player)
+              
 
     def draw(self, screen):
         """
-        Draws the main menu state to the screen.
+        Draws the character selection state to the screen.
         """
         # Draw the background image
         screen.blit(self.background_image, (0, 0))
@@ -108,12 +146,13 @@ class NewGameState(State):
     """
     Represents the new game state of the game.
     """
-    def __init__(self):
+    def __init__(self, character):
         """
         Initializes the dungeon and player position in the new game state.
         """
         self.dungeon = Dungeon(5)
         self.player_position = (0, 0)
+        self.character = character
 
     def handle_input(self, event):
         """

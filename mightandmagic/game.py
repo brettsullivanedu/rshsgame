@@ -1,7 +1,7 @@
 # Import necessary modules
 import pygame
 from constants import INTRO_BG_IMAGE_PATH
-from states import IntroState, MainMenuState
+from states import IntroState
 from utils import image_loader
 
 class MightAndMagic:

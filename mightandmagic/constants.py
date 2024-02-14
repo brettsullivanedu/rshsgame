@@ -22,6 +22,7 @@ NEW_GAME_BUTTON_IMAGE_PATH = 'newgame.jpg'
 OPTIONS_BUTTON_IMAGE_PATH = 'options.jpg'
 QUIT_BUTTON_IMAGE_PATH = 'exitbutton.jpg'
 MAIN_MENU_BG = 'menu.jpg'
+CHARACTER_SELECT_BG = 'characterselect.jpg'
 
 # Room images
 ROOM_IMAGES = {
