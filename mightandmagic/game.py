@@ -1,5 +1,6 @@
 # Import necessary modules
 import pygame
+from constants import INTRO_BG_IMAGE_PATH
 from states import IntroState, MainMenuState
 from utils import image_loader
 
@@ -11,7 +12,7 @@ class MightAndMagic:
         """
         self._init_pygame()
         self.screen = pygame.display.set_mode((800,800))  # Create a display surface
-        self.background = image_loader("backgrounds/title.jpg", False)  # Load the background image
+        self.background = image_loader(INTRO_BG_IMAGE_PATH,folder="backgrounds", with_alpha=False, scale=True)  # Load the background image
         self.state = IntroState()  # Set the initial game state
 
     def main_loop(self):
@@ -63,6 +64,3 @@ class MightAndMagic:
         self.state.draw(self.screen)
         pygame.display.flip()  # Update the full display surface to the screen
 
-if __name__ == "__main__":
-    game = MightAndMagic()  # Create an instance of the game
-    game.main_loop()  # Start the game's main loop
