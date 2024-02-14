@@ -1,5 +1,5 @@
 # Importing necessary classes from mightandmagic.inventory module
-from mightandmagic.inventory import Gold, Inventory
+from inventory import Gold, Inventory
 
 # The Player class is an abstract representation of a player in the game.
 class Player:

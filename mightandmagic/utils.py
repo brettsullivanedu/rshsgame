@@ -5,7 +5,7 @@ import pygame
 # Define a function to load a sprite
 def image_loader(name, with_alpha=True):
     # Construct the file path to the sprite
-    path = f"mightandmagic/assets/{name}"
+    path = f"assets/{name}"
     # Load the sprite from the file
     loaded_sprite = load(path)
 
