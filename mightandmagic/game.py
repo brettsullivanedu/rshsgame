@@ -13,7 +13,7 @@ class MightAndMagic:
         self._init_pygame()
         self.screen = pygame.display.set_mode((800,800))  # Create a display surface
         self.background = image_loader(INTRO_BG_IMAGE_PATH,folder="backgrounds", with_alpha=False, scale=True)  # Load the background image
-        self.state = IntroState()  # Set the initial game state
+        self.state = IntroState(self.screen)  # Set the initial game state
 
     def main_loop(self):
         """

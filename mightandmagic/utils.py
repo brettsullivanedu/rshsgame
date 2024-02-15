@@ -4,6 +4,8 @@ from pygame.image import load
 import os
 import pygame
 
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH
+
 def image_loader(name, folder="backgrounds", with_alpha=True, scale=True):
     """
     Function to load an image.
@@ -62,3 +64,45 @@ class Button:
             if self.rect.collidepoint(event.pos):  # If the position of the mouse event is within the rectangle of the button
                 return True
         return False
+
+class BottomUI:
+    def __init__(self, screen):
+        """
+        Initializes the bottom UI.
+        """
+        self.screen = screen
+        self.room_description = ""
+        self.button_texts = []
+        self.paper_image = pygame.image.load("assets/backgrounds/empty4.jpg")
+
+    def set_room_description(self, description):
+        self.room_description = description
+
+    def set_button_texts(self, texts):
+        self.button_texts = texts
+
+    def draw(self):
+        """
+        Draws the bottom UI to the screen.
+        """
+        # Draw the paper image
+        self.screen.blit(pygame.transform.scale(self.paper_image, (SCREEN_WIDTH, SCREEN_HEIGHT // 3)), (0, SCREEN_HEIGHT - (SCREEN_HEIGHT // 3)))
+
+        # Draw the room description
+        font = pygame.font.Font(None, 36)
+        text = font.render(self.room_description, True, (0, 0, 0))
+        text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - (SCREEN_HEIGHT // 6)))
+        self.screen.blit(text, text_rect)
+
+        # Draw the buttons
+        button_y = SCREEN_HEIGHT - 100
+        button_x = 100
+        button_width = 150
+        button_height = 50
+        for button_text in self.button_texts:
+            button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+            pygame.draw.rect(self.screen, (255, 0, 0), button_rect)
+            button_font = pygame.font.Font(None, 24)
+            button_text_surface = button_font.render(button_text, True, (255, 255, 255))
+            self.screen.blit(button_text_surface, (button_x + 10, button_y + 10))
+            button_x += button_width + 10

@@ -42,7 +42,7 @@ class Room:
         Draws the room description on a piece of paper and displays it on the screen.
         """
         font = pygame.font.Font(None, 36)  # Font for the room description
-        paper = pygame.image.load("assets/paper.jpg")  # Image of the paper
+        paper = pygame.image.load("assets/backgrounds/empty4.jpg")  # Image of the paper
         text = font.render(self.description, True, (0, 0, 0))  # Rendered text of the room description
         paper.blit(text, (50, 50))  # Blit the text onto the paper
         screen.blit(pygame.transform.scale(paper, (300, 200)), (250, 200))  # Scale the paper and blit it onto the screen

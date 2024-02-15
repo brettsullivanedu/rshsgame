@@ -1,14 +1,30 @@
 import pygame
 import time
-from constants import CHARACTER_SELECT_BG, MAIN_MENU_BG, NEW_GAME_BUTTON_IMAGE_PATH, OPTIONS_BUTTON_IMAGE_PATH, QUIT_BUTTON_IMAGE_PATH, SCREEN_HEIGHT, SCREEN_WIDTH
+from constants import (
+    CHARACTER_SELECT_BG,
+    MAIN_MENU_BG,
+    NEW_GAME_BUTTON_IMAGE_PATH,
+    OPTIONS_BUTTON_IMAGE_PATH,
+    QUIT_BUTTON_IMAGE_PATH,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+)
 from dungeon import Dungeon
 from player import Rogue, Warrior, Wizard
-from utils import Button, image_loader
+from utils import BottomUI, Button, image_loader
+
 
 class State:
     """
     Abstract base class for all game states.
     """
+
+    def __init__(self, screen=None):
+        """
+        Initializes the screen.
+        """
+        self.screen = screen
+
     def handle_input(self, event):
         """
         Method to handle user input. To be implemented in subclasses.
@@ -27,21 +43,26 @@ class State:
         """
         pass
 
+
 class IntroState(State):
     """
     Represents the introductory state of the game.
     """
-    def __init__(self):
+
+    def __init__(self, screen):
         """
         Initializes the start time of the intro state.
         """
+        super().__init__(screen)
         self.start_time = time.time()
 
     def handle_input(self, event):
         """
         Handles user input in the intro state. If the user presses return or escape, transition to the main menu state.
         """
-        if event.type == pygame.KEYDOWN and (event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE):
+        if event.type == pygame.KEYDOWN and (
+            event.key == pygame.K_RETURN or event.key == pygame.K_ESCAPE
+        ):
             return MainMenuState()
 
     def update(self):
@@ -49,22 +70,28 @@ class IntroState(State):
         Updates the intro state. If 3 seconds have passed, transition to the main menu state.
         """
         if time.time() - self.start_time > 3:  # 3 seconds have passed
-            return MainMenuState()
+            return MainMenuState(self.screen)
+
 
 class MainMenuState(State):
     """
     Represents the main menu state of the game.
     """
-    def __init__(self):
+
+    def __init__(self, screen):
         """
         Initializes the buttons and background image in the main menu state.
         """
+        super().__init__(screen)
         self.background_image = image_loader(MAIN_MENU_BG, with_alpha=False, scale=True)
         self.buttons = [
-            Button(NEW_GAME_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100),
+            Button(
+                NEW_GAME_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100
+            ),
             Button(OPTIONS_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2),
-            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 100)
+            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 100),
         ]
+
         # Load images for all buttons
         for button in self.buttons:
             button.load_image()
@@ -76,12 +103,11 @@ class MainMenuState(State):
         for button in self.buttons:
             if button.is_clicked(event):
                 if button.image_path == NEW_GAME_BUTTON_IMAGE_PATH:
-                    return CharacterSelectState()
+                    return CharacterSelectState(self.screen)
                 elif button.image_path == OPTIONS_BUTTON_IMAGE_PATH:
                     return OptionsState()
                 elif button.image_path == QUIT_BUTTON_IMAGE_PATH:
                     return QuitState()
-
 
     def draw(self, screen):
         """
@@ -94,22 +120,27 @@ class MainMenuState(State):
         for button in self.buttons:
             button.draw(screen)
 
+
 class CharacterSelectState(State):
     """
     Represents the character selection state of the game.
     """
-    def __init__(self):
+
+    def __init__(self, screen):
         """
         Initializes the background image and buttons in the character selection state.
         """
-        self.background_image = image_loader(CHARACTER_SELECT_BG, with_alpha=False, scale=True)
+        super().__init__(screen)
+        self.background_image = image_loader(
+            CHARACTER_SELECT_BG, with_alpha=False, scale=True
+        )
         self.buttons = [
             Button(NEW_GAME_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2),
             Button(OPTIONS_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2),
-            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH * 3 / 4, SCREEN_HEIGHT / 2)
+            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH * 3 / 4, SCREEN_HEIGHT / 2),
         ]
         self.selected_player = None  # Attribute to store the selected player character
-        
+
         # Load images for all buttons
         for button in self.buttons:
             button.load_image()
@@ -120,7 +151,7 @@ class CharacterSelectState(State):
         """
         for button in self.buttons:
             if button.is_clicked(event):
-                
+
                 # Create a Player object based on the selected character
                 if button.image_path == NEW_GAME_BUTTON_IMAGE_PATH:
                     self.selected_player = Rogue("Rogue")  # Create a Rogue player
@@ -128,8 +159,8 @@ class CharacterSelectState(State):
                     self.selected_player = Wizard("Wizard")  # Create a Wizard player
                 elif button.image_path == QUIT_BUTTON_IMAGE_PATH:
                     self.selected_player = Warrior("Warrior")  # Create a Warrior player
-                return NewGameState(self.selected_player)
-              
+                return NewGameState(self.screen, self.selected_player)
+
 
     def draw(self, screen):
         """
@@ -142,17 +173,29 @@ class CharacterSelectState(State):
         for button in self.buttons:
             button.draw(screen)
 
+
 class NewGameState(State):
     """
     Represents the new game state of the game.
     """
-    def __init__(self, character):
+    def __init__(self, screen, character):
         """
-        Initializes the dungeon and player position in the new game state.
+        Initializes the dungeon, player position, and bottom UI in the new game state.
         """
-        self.dungeon = Dungeon(5)
+        super().__init__(screen)
+        self.dungeon = Dungeon(6)
         self.player_position = (0, 0)
         self.character = character
+        self.bottom_ui = BottomUI(screen)  # Pass the screen to the BottomUI constructor
+        self.update_bottom_ui()  # Update the bottom UI initially
+
+    def update_bottom_ui(self):
+        """
+        Updates the bottom UI based on the current room's information.
+        """
+        current_room = self.dungeon.rooms[self.player_position[0]][self.player_position[1]]
+        self.bottom_ui.set_room_description(current_room.description)
+        self.bottom_ui.set_button_texts(["North", "South", "West", "East"])  # Example directional buttons
 
     def handle_input(self, event):
         """
@@ -191,30 +234,31 @@ class NewGameState(State):
         current_room = self.dungeon.rooms[self.player_position[0]][self.player_position[1]]
 
         # Draw the room
-        screen.blit(current_room.image, (0, 0))
+        current_room.display(screen)
 
-        # Draw the room description
-        font = pygame.font.Font(None, 36)
-        text = font.render(current_room.description, True, (255, 255, 255))
-        screen.blit(text, (100, 100))
+        # Update the bottom UI
+        self.update_bottom_ui()
 
-        # Draw the room event
-        text = font.render('Event: ' + current_room.event, True, (255, 255, 255))
-        screen.blit(text, (100, 200))
+        # Draw bottom UI
+        self.bottom_ui.draw()
 
         # Update the display
         pygame.display.flip()
+
 
 class OptionsState(State):
     """
     Represents the options state of the game. To be implemented.
     """
+
     pass
+
 
 class QuitState(State):
     """
     Represents the quit state of the game.
     """
+
     def update(self):
         """
         Quits the game when this state is updated.
