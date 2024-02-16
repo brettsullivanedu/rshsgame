@@ -86,28 +86,44 @@ class MainMenuState(State):
         self.background_image = image_loader(MAIN_MENU_BG, with_alpha=False, scale=True)
         self.buttons = [
             Button(
-                NEW_GAME_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100
+                "buttonBG.jpg",
+                SCREEN_WIDTH / 2,
+                SCREEN_HEIGHT / 2 - 100,
+                180,
+                70,
+                "New Game",
             ),
-            Button(OPTIONS_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2),
-            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 100),
+            Button(
+                "buttonBG.jpg",
+                SCREEN_WIDTH / 2,
+                SCREEN_HEIGHT / 2,
+                180,
+                70,
+                "Options",
+            ),
+            Button(
+                "buttonBG.jpg",
+                SCREEN_WIDTH / 2,
+                SCREEN_HEIGHT / 2 + 100,
+                180,
+                70,
+                "Quit",
+            ),
         ]
-
-        # Load images for all buttons
-        for button in self.buttons:
-            button.load_image()
 
     def handle_input(self, event):
         """
-        Handles user input in the main menu state. Depending on the button clicked, transition to the appropriate state.
+        Handles user input in the main menu state. Only responds to mouse events.
         """
-        for button in self.buttons:
-            if button.is_clicked(event):
-                if button.image_path == NEW_GAME_BUTTON_IMAGE_PATH:
-                    return CharacterSelectState(self.screen)
-                elif button.image_path == OPTIONS_BUTTON_IMAGE_PATH:
-                    return OptionsState()
-                elif button.image_path == QUIT_BUTTON_IMAGE_PATH:
-                    return QuitState()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            for button in self.buttons:
+                if button.is_clicked(event):
+                    if button.text == "New Game":
+                        return CharacterSelectState(self.screen)
+                    elif button.text == "Options":
+                        return OptionsState()
+                    elif button.text == "Quit":
+                        return QuitState()
 
     def draw(self, screen):
         """
@@ -135,9 +151,28 @@ class CharacterSelectState(State):
             CHARACTER_SELECT_BG, with_alpha=False, scale=True
         )
         self.buttons = [
-            Button(NEW_GAME_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2),
-            Button(OPTIONS_BUTTON_IMAGE_PATH, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2),
-            Button(QUIT_BUTTON_IMAGE_PATH, SCREEN_WIDTH * 3 / 4, SCREEN_HEIGHT / 2),
+            Button(
+                "buttonBG.jpg",
+                SCREEN_WIDTH * 0.01, SCREEN_HEIGHT * 0.83,
+                180,
+                70,
+                "Rogue",
+            ),
+            Button(
+                "buttonBG.jpg",
+                SCREEN_WIDTH * 0.395, SCREEN_HEIGHT * 0.83,
+                180,
+                70,
+                "Wizard",
+            ),
+            Button(
+                "buttonBG.jpg",
+                SCREEN_WIDTH * 0.765, SCREEN_HEIGHT * 0.83,
+                180,
+                70,
+                "Warrior",
+            ),
+           
         ]
         self.selected_player = None  # Attribute to store the selected player character
 
@@ -161,7 +196,6 @@ class CharacterSelectState(State):
                     self.selected_player = Warrior("Warrior")  # Create a Warrior player
                 return NewGameState(self.screen, self.selected_player)
 
-
     def draw(self, screen):
         """
         Draws the character selection state to the screen.
@@ -178,6 +212,7 @@ class NewGameState(State):
     """
     Represents the new game state of the game.
     """
+
     def __init__(self, screen, character):
         """
         Initializes the dungeon, player position, and bottom UI in the new game state.
@@ -195,33 +230,24 @@ class NewGameState(State):
         """
         current_room = self.dungeon.rooms[self.player_position[0]][self.player_position[1]]
         self.bottom_ui.set_room_description(current_room.description)
-        self.bottom_ui.set_button_texts(["North", "South", "West", "East"])  # Example directional buttons
+        self.bottom_ui.set_buttons()  # Set up buttons for directions
 
     def handle_input(self, event):
         """
-        Handles user input in the new game state. Depending on the key pressed, move the player in the appropriate direction.
+        Handles user input in the new game state. Only responds to mouse events.
         """
-        if event.type == pygame.KEYDOWN:
-            direction = None
-            if event.key == pygame.K_w:
-                direction = 'north'
-            elif event.key == pygame.K_s:
-                direction = 'south'
-            elif event.key == pygame.K_a:
-                direction = 'west'
-            elif event.key == pygame.K_d:
-                direction = 'east'
-            if direction:
-                current_room = self.dungeon.rooms[self.player_position[0]][self.player_position[1]]
-                if direction in current_room.directions:
-                    next_position = current_room.directions[direction]
-                    if 0 <= next_position[0] < self.dungeon.size and 0 <= next_position[1] < self.dungeon.size:
-                        self.player_position = next_position
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            for button in self.bottom_ui.buttons:
+                if button.is_clicked(event):
+                    direction = button.text.lower()  # Convert button text to lowercase direction
+                    current_room = self.dungeon.rooms[self.player_position[0]][self.player_position[1]]
+                    if direction in current_room.directions:
+                        next_position = current_room.directions[direction]
+                        if 0 <= next_position[0] < self.dungeon.size and 0 <= next_position[1] < self.dungeon.size:
+                            self.player_position = next_position
+                            print(self.dungeon.print_dungeon())  # Print dungeon if moving
                     else:
-                        print('You cannot go in that direction.')
-                else:
-                    print('Invalid direction.')
-            print(self.dungeon.print_dungeon())
+                        print("Invalid direction.")
 
     def draw(self, screen):
         """
@@ -231,13 +257,12 @@ class NewGameState(State):
         screen.fill((0, 0, 0))
 
         # Get the current room
-        current_room = self.dungeon.rooms[self.player_position[0]][self.player_position[1]]
+        current_room = self.dungeon.rooms[self.player_position[0]][
+            self.player_position[1]
+        ]
 
         # Draw the room
         current_room.display(screen)
-
-        # Update the bottom UI
-        self.update_bottom_ui()
 
         # Draw bottom UI
         self.bottom_ui.draw()

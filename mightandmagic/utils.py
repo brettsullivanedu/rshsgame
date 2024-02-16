@@ -30,31 +30,36 @@ def image_loader(name, folder="backgrounds", with_alpha=True, scale=True):
     except pygame.error as e:
         print(f"Error loading image: {e}")
         return None
-
-
 class Button:
     """
     Represents a clickable button in the game.
     """
-    def __init__(self, image_path, x, y):
+    def __init__(self, image_path, x, y, width, height, text):
         """
-        Initializes the button with an image and a position.
+        Initializes the button with an image, a position, width, height, and text.
         """
         self.image_path = image_path  # Store the image path
-        self.rect = pygame.Rect(x, y, 0, 0)  # Create an empty rectangle initially
+        self.rect = pygame.Rect(x, y, width, height)  # Create a rectangle with custom width and height
+        self.text = text  # Text to be displayed on the button
+        self.load_image()
 
     def load_image(self):
         """
-        Loads the button's image.
+        Loads the button's background image.
         """
-        self.image = image_loader(self.image_path, folder="sprites", with_alpha=False, scale=False)  # Load the image
-        self.rect = self.image.get_rect(center=self.rect.center)  # Update the rectangle with the image size and position
-
+        self.image = image_loader(self.image_path, folder="backgrounds", with_alpha=True, scale=True)  # Load the image
+        self.image = pygame.transform.scale(self.image, (self.rect.width, self.rect.height))  # Scale image to match custom size
+        # Make white color transparent
+        self.image.set_colorkey((255, 255, 255))
     def draw(self, screen):
         """
         Draws the button to the screen.
         """
         screen.blit(self.image, self.rect)  # Draw the image to the screen at the position of the rectangle
+        font = pygame.font.Font(None, 24)
+        text_surface = font.render(self.text, True, (50, 50, 50))
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
 
     def is_clicked(self, event):
         """
@@ -72,14 +77,22 @@ class BottomUI:
         """
         self.screen = screen
         self.room_description = ""
-        self.button_texts = []
-        self.paper_image = pygame.image.load("assets/backgrounds/empty4.jpg")
+        self.buttons = []
+        self.paper_image = image_loader("paper.jpg", folder="backgrounds", with_alpha=True, scale=False)
 
     def set_room_description(self, description):
         self.room_description = description
 
-    def set_button_texts(self, texts):
-        self.button_texts = texts
+    def set_buttons(self):
+        """
+        Sets up the buttons for North, South, East, and West directions.
+        """
+        self.buttons = [
+            Button("buttonbg.jpg", 50, SCREEN_HEIGHT - 100, 100, 50, "North"),
+            Button("buttonbg.jpg", 210, SCREEN_HEIGHT - 100, 100, 50, "South"),
+            Button("buttonbg.jpg", 370, SCREEN_HEIGHT - 100, 100, 50, "East"),
+            Button("buttonbg.jpg", 530, SCREEN_HEIGHT - 100, 100, 50, "West")
+        ]
 
     def draw(self):
         """
@@ -95,14 +108,5 @@ class BottomUI:
         self.screen.blit(text, text_rect)
 
         # Draw the buttons
-        button_y = SCREEN_HEIGHT - 100
-        button_x = 100
-        button_width = 150
-        button_height = 50
-        for button_text in self.button_texts:
-            button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
-            pygame.draw.rect(self.screen, (255, 0, 0), button_rect)
-            button_font = pygame.font.Font(None, 24)
-            button_text_surface = button_font.render(button_text, True, (255, 255, 255))
-            self.screen.blit(button_text_surface, (button_x + 10, button_y + 10))
-            button_x += button_width + 10
+        for button in self.buttons:
+            button.draw(self.screen)
